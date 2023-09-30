@@ -1,0 +1,7 @@
+---
+title: "Homework 2"
+author: "Sarah Haberlack"
+date: "2023-09-30"
+output: github_document
+---
+
