@@ -81,9 +81,44 @@ The total number of cigarette butts collected by Gwynnda in July of 2021 is XXX.
 
 ## Problem 3
 
+# Clean MCI data
+```{r}
+library(tidyverse)
+baseline_df = read.csv("data/data_mci/MCI_baseline.csv", skip = 1) |>
+  janitor::clean_names() |>
+  mutate(
+    sex = 
+      case_match(
+        sex, 
+        1 ~ "male", 
+        0 ~ "female"),
+    sex = as.factor(sex)) |>
+  mutate(
+    apoe4 =
+        case_match(
+          apoe4,
+          1 ~ "carrier",
+          0 ~ "non-carrier"),
+    apoe4 = as.factor(apoe4)) |>
+  rename(education_years = education, baseline_age = current_age) |>
+  mutate(
+    age_at_onset = as.numeric(age_at_onset)
+  ) |> 
+  mutate(
+  age_diff = age_at_onset - baseline_age) |>
+  filter(age_diff > 0 | is.na(age_diff)) |>
+  view()
+```
 
+At the beginning of the import process, we had to remove the first row (`skip = 1` within the `read.csv` command). This row served as a longer explanation for the actual columns beneath them. Without removing it, the column names are absurdly long, and it looks as though the true column row is the first observation.
 
+Because that column context is removed, we must now translate the numeric code used for `sex` and `apoe4` into character variables of male/female and carrier/non-carrier. This makes the data legible to those who are looking at it through our dataset for the first time.
 
+Next, we must remove all study participants who never developed an MCI. These would be the observations for `age_at_onset` - `basline_age` is less than 0. I created a new variable `age_diff` and filtered out observations for which `age_diff` was a negative number.
 
+Finally, for clarity's sake, I extended the `education` column name to `education_years`, another column name that became less self-explanatory when the lengthier row 1 was deleted.
+
+X Participants were recruited. `r filter(age_at_onset != ".")` participants developed MCI.
+The average baseline age was `r baseline_df |> mean(baseline_age)`
 
 
