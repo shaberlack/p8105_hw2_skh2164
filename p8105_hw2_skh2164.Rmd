@@ -85,7 +85,6 @@ The total number of cigarette butts collected by Gwynnda in July of 2021 is `r g
 
 # Clean MCI data
 ```{r}
-library(tidyverse)
 baseline_df = read.csv("data/data_mci/MCI_baseline.csv", skip = 1) |>
   janitor::clean_names() |>
   mutate(
@@ -111,7 +110,7 @@ baseline_df = read.csv("data/data_mci/MCI_baseline.csv", skip = 1) |>
   filter(age_diff > 0 | is.na(age_diff)) |>
 view()
 ```
-At the beginning of the import process, we had to remove the first row (`skip = 1` within the `read.csv` command). This row served as a longer explanation for the actual columns beneath them. Without removing it, the column names are absurdly long, and it looks as though the true column row is the first observation. Because that column context is removed, we must now translate the numeric code used for `sex` and `apoe4` into character variables of male/female and carrier/non-carrier. This makes the data legible to those who are looking at it through our dataset for the first time. Next, we must remove all study participants who never developed an MCI. These would be the observations for `age_at_onset` - `basline_age` is less than 0. I created a new variable `age_diff` and filtered out observations for which `age_diff` was a negative number. Finally, for clarity's sake, I extended the `education` column name to `education_years`, another column name that became less self-explanatory when the lengthier row 1 was deleted. 
+At the beginning of the import process, we had to remove the first row (`skip = 1` within the `read.csv` command). This row served as a longer explanation for the actual columns beneath them. Without removing it, the column names are absurdly long, and it looks as though the true column row is the first observation. Because that column context is removed, we must now translate the numeric code used for `sex` and `apoe4` into character variables of male/female and carrier/non-carrier. This makes the data legible to those who are looking at it through our dataset for the first time. Next, we must remove all study participants who never developed an MCI. These would be the observations for `age_at_onset - baseline_age` is less than 0. I created a new variable `age_diff` and filtered out observations for which `age_diff` was a negative number. Finally, for clarity's sake, I extended the `education` column name to `education_years`, another column name that became less self-explanatory when the lengthier row 1 was deleted. 
 
 `r count(baseline_df)` participants were recruited to the study. 
 
@@ -120,3 +119,35 @@ Of these, 93 participants developed MCI.
 The average baseline age was `r mean(baseline_df$baseline_age)` years.
 
 `r ((count(filter(baseline_df, sex == "female" & apoe4 == "carrier")))/(count(filter(baseline_df, sex == "female"))))*100`% of women in the study are APOE4 carriers.
+
+# Import, clean, tidy biomarker dataset
+To clean this dataset, I will need to use the information in the explanatory row (which I will end up skipping) to inform the more useful variable names I create. These data represent the amyloid beta 42/40 ratio levels at timestamps after the baseline visits. I will change my variable names to represent this. I changed `study_id` to `id` so that this dataset can merge with `baseline_df`. I changed the amyloid ratio levels to numeric column types in case we need to do math with them later.
+```{r}
+amyloid_df = read.csv("data/data_mci/MCI_amyloid.csv", skip = 1) |>
+  janitor::clean_names() |>
+  rename(id = study_id, amyloid_baseline = baseline, amyloid_year_2 = time_2, amyloid_year_4 = time_4, amyloid_year_6 = time_6, amyloid_year_8 = time_8) |>
+  mutate(
+    amyloid_baseline = as.numeric(amyloid_baseline), amyloid_year_2 = as.numeric(amyloid_year_2), amyloid_year_4 = as.numeric(amyloid_year_4), amyloid_year_6 = as.numeric(amyloid_year_6), amyloid_year_8 = as.numeric(amyloid_year_8)
+  )
+```
+
+
+```{r}
+count(baseline_df)
+count(amyloid_df)
+```
+There are 479 participants at baseline and 487 participants in the amyloid dataset. This means that there are some participants who are in one dataset but not the other.
+
+# Inner join baseline and amyloid datasets
+
+```{r}
+fulldf = inner_join(baseline_df, amyloid_df) |>
+  view()
+```
+
+The resulting dataset has `r count(fulldf)` participants.
+
+```{r}
+write.csv(fulldf, "data/alzheimers_trajectory.csv")
+```
+
