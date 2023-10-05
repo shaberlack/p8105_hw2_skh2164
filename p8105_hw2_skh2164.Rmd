@@ -52,19 +52,20 @@ Cleaning mr trash wheel, professor trash wheel and Gwynnda:
 ```{r}
 mrtrash_df = readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = 1, range = "A2:N586") |>
 janitor::clean_names() |>
-mutate(homes_pwrd = weight_tons*(50/3), wheel = "mister") |>
-  select(wheel, everything(), -year)
+mutate(homes_pwrd = weight_tons*(50/3), wheel = "mister", 
+    year = as.numeric(year)) |>
+  select(wheel, everything())
 
 proftrash_df = readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = 2, range = "A2:M108") |>
 janitor::clean_names() |>
 mutate(homes_pwrd = weight_tons*(50/3), wheel = "prof") |>
-  select(wheel, everything(), -year)
+  select(wheel, everything())
 
 
 gwynnda_df = readxl::read_excel("data/202309 Trash Wheel Collection Data.xlsx", sheet = 4, range = "A2:L157") |>
 janitor::clean_names() |>
 mutate(homes_pwrd = weight_tons*(50/3), wheel = "gwynnda") |>
-  select(wheel, everything(), -year)
+  select(wheel, everything())
 ```
 
 # Combine datasets
@@ -77,7 +78,8 @@ There are 835 observations in the combined dataset. Key variables include `wheel
 
 The total weight of trash collected by Professor Trash Wheel is `r sum(proftrash_df$weight_tons)` tons.
 
-The total number of cigarette butts collected by Gwynnda in July of 2021 is XXX.
+The total number of cigarette butts collected by Gwynnda in July of 2021 is `r gwcigs = gwynnda_df |> filter(year == 2021 & month == "July")
+  sum(gwcigs$cigarette_butts)`.
 
 ## Problem 3
 
@@ -113,7 +115,7 @@ At the beginning of the import process, we had to remove the first row (`skip = 
 
 `r count(baseline_df)` participants were recruited to the study. 
 
-Of these, `r count(baseline_df, is.na(age_at_onset))` participants developed MCI. 
+Of these, 93 participants developed MCI.
 
 The average baseline age was `r mean(baseline_df$baseline_age)` years.
 
