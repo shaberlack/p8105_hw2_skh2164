@@ -144,7 +144,7 @@ fulldf = inner_join(baseline_df, amyloid_df) |>
   view()
 ```
 
-The resulting dataset has `r count(fulldf)` participants.
+The resulting dataset has `r count(fulldf)` participants. The mean baseline age is `r mean(fulldf$baseline_age, na.rm = TRUE)`.
 
 ```{r}
 write.csv(fulldf, "data/alzheimers_trajectory.csv")
