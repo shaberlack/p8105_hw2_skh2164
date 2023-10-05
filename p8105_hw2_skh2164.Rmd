@@ -133,10 +133,9 @@ amyloid_df = read.csv("data/data_mci/MCI_amyloid.csv", skip = 1) |>
 
 
 ```{r}
-count(baseline_df)
-count(amyloid_df)
+anti_join(baseline_df, amyloid_df, by = "id")
 ```
-There are 479 participants at baseline and 487 participants in the amyloid dataset. This means that there are some participants who are in one dataset but not the other.
+There are 8 participants who appear in only the baseline dataset, but not the amyloid dataset. There are no participants who appear in the amyloid dataset but not the baseline dataset. This could be because it is much easier to get data about baseline characteristics of a participant as opposed to a biomarker, which requires taking a blood sample--a much more precarious situation which may not always be successful.
 
 # Inner join baseline and amyloid datasets
 
