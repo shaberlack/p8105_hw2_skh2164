@@ -40,11 +40,42 @@ pols_month = separate(pols_month, mon, c("year", "month", "day"), "-")|>
     "09" ~ "September",
     "10" ~ "October",
     "11" ~ "November",
-    "12" ~ "December")) |>
-  
+    "12" ~ "December"), 
+    year = as.numeric(year), month = as.numeric(month)) |>
   mutate(president = ifelse(prez_gop == 1, "Republican", "Democrat")) |>
         select(-prez_gop & -prez_dem & -day) 
 ```
+
+We also clean the 538 `snp` data, which contains information related to Standard & Poor’s stock market index.
+
+```{r clean_538_snp}
+snp = 
+  read_csv("./data/fivethirtyeight_datasets/snp.csv",
+  col_types = cols(date = col_date(format = "%m/%d/%y"))) |>
+  separate(date, into = c("year", "month", "day"), convert = TRUE) |>
+  arrange(year, month) |>
+  mutate(
+    year = if_else(year > 2023, year - 100, year)) |>
+  left_join(x = _, y = pols_month) |>
+  select(year, month, close) 
+```
+
+Finally, we tidy the `unemployment` data so that it can be merged with the `pols` and `snp` datasets.
+
+```{r clean_538_unemp}
+unemployment = 
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv") |>
+  rename(year = Year) |>
+  pivot_longer(
+    Jan:Dec, 
+    names_to = "month_abb",
+    values_to = "unemployment"
+  ) |> 
+  left_join(x = _, y = pols_month) |> 
+  select(year, month, unemployment)
+```
+
+
 
 ## Problem 2
 
